@@ -1,5 +1,4 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy
-
 from PyQt6.QtCore import Qt
 
 class pantalla_inicial(QMainWindow):
@@ -23,6 +22,8 @@ class pantalla_inicial(QMainWindow):
         self.contra_line = QLineEdit()
         self.contra_line.setEchoMode(QLineEdit.EchoMode.Password)
         self.login = QPushButton("Login")
+        self.comb_Log = QComboBox()
+        self.comb_Log.addItems(["Administrador","Doctor","Recepcion"])
 
         layout_princ = QVBoxLayout()
 
@@ -40,6 +41,7 @@ class pantalla_inicial(QMainWindow):
 
         layout_princ.addLayout(layout_nombre)
         layout_princ.addLayout(layout_contra)
+        layout_princ.addWidget(self.comb_Log)
         layout_princ.addLayout(layout_boton)
 
         container = QWidget()
@@ -49,6 +51,7 @@ class pantalla_inicial(QMainWindow):
     # Comprueba si las credenciales ingresadas son correctas
     def comprobar_cred(self):
         if self.nombre_line.text() in self.usuarios and self.usuarios[self.nombre_line.text()] == self.contra_line.text():
+            
             self.programa()
         else:
             QMessageBox.information(self, "Credenciales incorrectas", "La contraseña o el nombre de usuario son incorrectos. Vuelva a intentarlo")
@@ -56,9 +59,38 @@ class pantalla_inicial(QMainWindow):
     # Lanza la ventana principal si el login fue exitoso
     def programa(self):
         self.hide()  # Oculta la ventana de login
-        self.ventana_principal = MainWindow()
+        self.ventana_principal = ventana_principal(self.comb_Log.currentText())
         self.ventana_principal.show()
 
+
+class ventana_principal(QMainWindow):
+    def __init__(self,comb_Log):
+        super().__init__()
+
+        
+        self.label=QLabel(str(comb_Log))
+        if str(comb_Log)=="Administrador":
+            self.administrador()
+
+
+    def administrador(self):
+
+        self.label=QLabel("admin")
+        
+        layout_admin=QHBoxLayout()
+
+        layout_admin.addWidget(self.label)
+
+        container=QWidget()
+        container.setLayout(layout_admin)
+        self.setCentralWidget(container)
+
+        
+        
+       
+
+        
+        
 
 def Veterinaria():
     app=QApplication([])
