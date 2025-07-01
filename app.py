@@ -1,5 +1,6 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy, QGridLayout
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 
 class pantalla_inicial(QMainWindow):
     def __init__(self):
@@ -95,7 +96,8 @@ class ventana_principal(QMainWindow):
     def __init__(self,comb_Log):
         super().__init__()
 
-        
+        self.resize(1366,768)
+
         self.label=QLabel(str(comb_Log))
         if str(comb_Log)=="Administrador":
             self.administrador()
@@ -107,15 +109,26 @@ class ventana_principal(QMainWindow):
 
     def administrador(self):
 
-        self.label=QLabel("admin")
+        self.label=QLabel("Bienvenido Administrador",self)
+        self.label.move(50,50)
+        self.label.setFont(QFont("Arial", 20))
+        self.label.adjustSize()
+        self.add=QPushButton("Agregar usuario",self)
+        self.add.move(200,100)
+
+        self.add.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.add.setFixedWidth(100)
         
-        layout_admin=QHBoxLayout()
+        #layout_admin=QGridLayout()
 
-        layout_admin.addWidget(self.label)
+        ##layout_admin.addWidget(self.add,0,2)
+        
+        
 
-        container=QWidget()
-        container.setLayout(layout_admin)
-        self.setCentralWidget(container)
+    
+        #container=QWidget()
+        #container.setLayout(layout_admin)
+        #self.setCentralWidget(container)
 
     def doctor(self):
 
