@@ -135,9 +135,9 @@ class ventana_principal(QMainWindow):
         self.label=QLabel("Bienvenido Doctor",self)
         self.label.setFont(QFont("Arial", 20))
         self.label.adjustSize()
-        layout_admin = QHBoxLayout()
-        layout_admin.addWidget(self.label, alignment=Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        self.setLayout(layout_admin)
+        layout_doc = QHBoxLayout()
+        layout_doc.addWidget(self.label, alignment=Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        self.setLayout(layout_doc)
 
 
         self.ver_Paciente=QPushButton("Ver pacientes",self)
@@ -151,14 +151,15 @@ class ventana_principal(QMainWindow):
         layout.addWidget(self.ver_Paciente)
         layout.addWidget(self.pacientes)
         self.setLayout(layout)
+        container=QWidget()
+        container.setLayout(layout_doc)
+        self.setCentralWidget(container)
         
     def mostrar_pacientes(self):
         self.pacientes.show()
         
         
-        container=QWidget()
-        container.setLayout(layout_admin)
-        self.setCentralWidget(container)
+    
     
     def recepcion(self):
 
