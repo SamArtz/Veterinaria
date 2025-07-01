@@ -157,10 +157,8 @@ class ventana_principal(QMainWindow):
         
     def mostrar_pacientes(self):
         self.pacientes.show()
-        
-        
-    
-    
+        self.ver_Paciente.hide()
+
     def recepcion(self):
 
         self.label=QLabel("recepcion")
