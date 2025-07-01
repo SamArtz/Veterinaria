@@ -8,10 +8,18 @@ class pantalla_inicial(QMainWindow):
         self.usuarios = {
             "juan123": "pass123",
             "maria456": "maria_pass",
-            "admin": "admin1234",
             "pedro89": "clave89",
             "usuario_test": "test123"
         }
+
+        self.admin = {
+            "admin": "admin1234",
+        }
+
+        self.doctor={
+            "pedro89": "clave89",
+            "usuario_test": "test123"
+            }
 
         self.setWindowTitle("Login")
 
@@ -43,6 +51,8 @@ class pantalla_inicial(QMainWindow):
         layout_princ.addLayout(layout_contra)
         layout_princ.addWidget(self.comb_Log)
         layout_princ.addLayout(layout_boton)
+        self.actualizar_combo("Administrador")
+        self.comb_Log.currentTextChanged.connect(self.actualizar_combo)
 
         container = QWidget()
         container.setLayout(layout_princ)
@@ -50,17 +60,35 @@ class pantalla_inicial(QMainWindow):
 
     # Comprueba si las credenciales ingresadas son correctas
     def comprobar_cred(self):
-        if self.nombre_line.text() in self.usuarios and self.usuarios[self.nombre_line.text()] == self.contra_line.text():
-            
+        if self.nombre_line.text() in self.usuarios and self.usuarios[self.nombre_line.text()] == self.contra_line.text()and self.profile==2:
+            self.programa()
+        elif self.nombre_line.text() in self.doctor and self.doctor[self.nombre_line.text()] == self.contra_line.text()and self.profile==3:
+            self.programa()
+        elif self.nombre_line.text() in self.admin and self.admin[self.nombre_line.text()] == self.contra_line.text()and self.profile==1:
             self.programa()
         else:
             QMessageBox.information(self, "Credenciales incorrectas", "La contraseña o el nombre de usuario son incorrectos. Vuelva a intentarlo")
+
+            
 
     # Lanza la ventana principal si el login fue exitoso
     def programa(self):
         self.hide()  # Oculta la ventana de login
         self.ventana_principal = ventana_principal(self.comb_Log.currentText())
         self.ventana_principal.show()
+
+    def actualizar_combo(self,text):
+        
+        if text=="Administrador":
+            self.profile=1
+        if text=="Recepcion":
+            self.profile=2
+        if text=="Doctor":
+            self.profile=3
+
+    
+        
+
 
 
 class ventana_principal(QMainWindow):
@@ -71,6 +99,10 @@ class ventana_principal(QMainWindow):
         self.label=QLabel(str(comb_Log))
         if str(comb_Log)=="Administrador":
             self.administrador()
+        if str(comb_Log)=="Doctor":
+            self.doctor()
+        if str(comb_Log)=="Recepcion":
+            self.recepcion()
 
 
     def administrador(self):
@@ -85,7 +117,29 @@ class ventana_principal(QMainWindow):
         container.setLayout(layout_admin)
         self.setCentralWidget(container)
 
+    def doctor(self):
+
+        self.label=QLabel("doctor")
         
+        layout_admin=QHBoxLayout()
+
+        layout_admin.addWidget(self.label)
+
+        container=QWidget()
+        container.setLayout(layout_admin)
+        self.setCentralWidget(container)
+    
+    def recepcion(self):
+
+        self.label=QLabel("recepcion")
+        
+        layout_admin=QHBoxLayout()
+
+        layout_admin.addWidget(self.label)
+
+        container=QWidget()
+        container.setLayout(layout_admin)
+        self.setCentralWidget(container)
         
        
 
