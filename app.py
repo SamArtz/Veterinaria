@@ -129,35 +129,37 @@ class ventana_principal(QMainWindow):
         #container=QWidget()
         #container.setLayout(layout_admin)
         #self.setCentralWidget(container)
-
     def doctor(self):
-
-        self.label=QLabel("Bienvenido Doctor",self)
+    # Crear widgets
+        self.label = QLabel("Bienvenido Doctor", self)
         self.label.setFont(QFont("Arial", 20))
         self.label.adjustSize()
-        layout_doc = QHBoxLayout()
-        layout_doc.addWidget(self.label, alignment=Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        self.setLayout(layout_doc)
 
-
-        self.ver_Paciente=QPushButton("Ver pacientes",self)
-        self.ver_Paciente.move(100,150)
+        self.ver_Paciente = QPushButton("Ver pacientes", self)
         self.ver_Paciente.clicked.connect(self.mostrar_pacientes)
-        
-        self.pacientes=QComboBox()
+
+        self.pacientes = QComboBox()
         self.pacientes.addItems(["Paciente 1", "Paciente 2", "Paciente 3"])
         self.pacientes.hide()
-        layout = QVBoxLayout()
-        layout.addWidget(self.ver_Paciente)
-        layout.addWidget(self.pacientes)
-        self.setLayout(layout)
-        container=QWidget()
+
+        # Layout para botones y combo
+        controles_layout = QVBoxLayout()
+        controles_layout.addWidget(self.ver_Paciente)
+        controles_layout.addWidget(self.pacientes)
+
+        # Layout principal
+        layout_doc = QHBoxLayout()
+        layout_doc.addWidget(self.label, alignment=Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        layout_doc.addLayout(controles_layout)  # ✅ Aquí ya existe controles_layout
+
+        # Establecer layout en el contenedor central
+        container = QWidget()
         container.setLayout(layout_doc)
         self.setCentralWidget(container)
-        
+
     def mostrar_pacientes(self):
         self.pacientes.show()
-        self.ver_Paciente.hide()
+
 
     def recepcion(self):
 
