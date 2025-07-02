@@ -115,6 +115,16 @@ class ventana_principal(QMainWindow):
         self.label.adjustSize()
         self.add=QPushButton("Agregar usuario",self)
         self.add.move(200,100)
+        self.rm=QPushButton("Eliminar usuario",self)
+        self.rm.move(200,150)
+        self.view=QPushButton("Ver Productos",self)
+        self.view.move(200,200)
+        self.addp=QPushButton("Agregar producto",self)
+        self.addp.move(200,250)
+        self.rmp=QPushButton("Eliminar producto",self)
+        self.rmp.move(200,300)
+        
+
 
         self.add.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.add.setFixedWidth(100)
