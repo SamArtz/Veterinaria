@@ -88,23 +88,23 @@ class pantalla_inicial(QMainWindow):
             self.profile=3
 
     
-        
-
-
 
 class ventana_principal(QMainWindow):
-    def __init__(self,comb_Log):
+    def __init__(self, comb_Log):
         super().__init__()
+        self.resize(500, 700)
 
-        self.resize(1366,768)
-
-        self.label=QLabel(str(comb_Log))
-        if str(comb_Log)=="Administrador":
+        self.label = QLabel(str(comb_Log))
+        if str(comb_Log) == "Administrador":
             self.administrador()
-        if str(comb_Log)=="Doctor":
+        if str(comb_Log) == "Doctor":
             self.doctor()
-        if str(comb_Log)=="Recepcion":
+        if str(comb_Log) == "Recepcion":
             self.recepcion()
+
+    # def administrador(self): ...
+    # def recepcion(self): ...
+
 
 
     def administrador(self):
@@ -131,45 +131,164 @@ class ventana_principal(QMainWindow):
         #self.setCentralWidget(container)
 
     def doctor(self):
+         self.setWindowTitle("Panel del Doctor")
+         self.resize(1000, 700)  # ventana 
 
-        self.label=QLabel("Bienvenido Doctor",self)
-        self.label.setFont(QFont("Arial", 20))
-        self.label.adjustSize()
-        layout_doc = QHBoxLayout()
-        layout_doc.addWidget(self.label, alignment=Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        self.setLayout(layout_doc)
+         ancho_campos = 300  # más largo para nombre y apellido
+         alto_campos_grandes = 80  
+         separacion = 20
+         y = 20
+
+         # Etiqueta de bienvenida
+         self.label = QLabel("Bienvenido Doctor", self)
+         self.label.setFont(QFont("Arial", 20))
+         self.label.adjustSize()
+         self.label.move(50, y)
+         y += 50
+
+         # Nombre y apellido de la mascota
+         self.nombre_mascota = QLineEdit(self)
+         self.nombre_mascota.setPlaceholderText("Nombre de la mascota")
+         self.nombre_mascota.setFixedWidth(ancho_campos)
+         self.nombre_mascota.move(50, y)
+
+         self.apellido_mascota = QLineEdit(self)
+         self.apellido_mascota.setPlaceholderText("Apellido de la mascota")
+         self.apellido_mascota.setFixedWidth(ancho_campos)
+         self.apellido_mascota.move(50 + ancho_campos + separacion, y)
+
+         y += 50
+
+         # especie (Perro/Gato)
+         self.especie = QComboBox(self)
+         self.especie.addItems(["Perro", "Gato"])
+         self.especie.setFixedWidth(150)
+         self.especie.move(50, y)
+         self.especie.currentTextChanged.connect(self.actualizar_razas)
+
+         # autocompletado
+         self.raza_mascota = QComboBox(self)
+         self.raza_mascota.setEditable(True) 
+         self.raza_mascota.setFixedWidth(400)
+         self.raza_mascota.move(220, y)
+
+         y += 50
+
+         # Nombre y apellido del dueño 
+         self.nombre_dueno = QLineEdit(self)
+         self.nombre_dueno.setPlaceholderText("Nombre del dueño")
+         self.nombre_dueno.setFixedWidth(ancho_campos)
+         self.nombre_dueno.move(50, y)
+
+         self.apellido_dueno = QLineEdit(self)
+         self.apellido_dueno.setPlaceholderText("Apellido del dueño")
+         self.apellido_dueno.setFixedWidth(ancho_campos)
+         self.apellido_dueno.move(50 + ancho_campos + separacion, y)
+
+         y += 50
+
+         # Fecha de la consulta 
+         from datetime import datetime
+         self.fecha_consulta = QLineEdit(self)
+         self.fecha_consulta.setReadOnly(True)
+         self.fecha_consulta.setPlaceholderText("Fecha de la consulta")
+         self.fecha_consulta.setFixedWidth(300)
+         self.fecha_consulta.move(50, y)
+         self.fecha_consulta.setText(datetime.now().strftime("%d/%m/%Y %H:%M"))
+
+         y += 50
+
+         # Edad de la mascota
+         self.edad_paciente = QSpinBox(self)
+         self.edad_paciente.setRange(0, 120)
+         self.edad_paciente.setPrefix("Edad: ")
+         self.edad_paciente.setFixedWidth(150)
+         self.edad_paciente.move(50, y)
+
+         y += 60
+
+         # Campo de razón de consulta 
+         self.sintomas_paciente = QLineEdit(self)
+         self.sintomas_paciente.setPlaceholderText("Razón de consulta / Síntomas")
+         self.sintomas_paciente.setFixedWidth(700)
+         self.sintomas_paciente.setFixedHeight(alto_campos_grandes)
+         self.sintomas_paciente.move(50, y)
+         y += alto_campos_grandes + 20
+
+         # Campo de diagnóstico 
+         self.diagnostico = QLineEdit(self)
+         self.diagnostico.setPlaceholderText("Diagnóstico y receta médica")
+         self.diagnostico.setFixedWidth(700)
+         self.diagnostico.setFixedHeight(alto_campos_grandes)
+         self.diagnostico.move(50, y)
+         y += alto_campos_grandes + 30
+
+         # Botón para simular guardar
+         self.boton_guardar = QPushButton("Guardar información", self)
+         self.boton_guardar.setFixedWidth(200)
+         self.boton_guardar.move(50, y)
+         self.boton_guardar.clicked.connect(self.simular_guardado)
+
+         # Botón Ver pacientes (abajo a la derecha)
+         self.ver_Paciente = QPushButton("Ver pacientes", self)
+         self.ver_Paciente.setFixedWidth(200)
+         self.ver_Paciente.move(750, 600)
+         self.ver_Paciente.clicked.connect(self.mostrar_pacientes)
+
+         # ComboBox de pacientes
+         self.pacientes = QComboBox(self)
+         self.pacientes.addItems(["Paciente 1", "Paciente 2", "Paciente 3"])
+         self.pacientes.move(750, 560)
+         self.pacientes.hide()
+
+         # Listas de razas para especie
+         self.razas_perro = [
+            "Labrador Retriever", "Bulldog", "Beagle", "Poodle", "Pastor Alemán",
+            "Golden Retriever", "Chihuahua", "Rottweiler", "Dálmata", "Boxer"
+        ]
+         self.razas_gato = [
+            "Persa", "Siamés", "Maine Coon", "Bengala", "Ragdoll",
+            "Esfinge", "Británico", "Abisinio", "Siberiano", "Exótico"
+        ]
+         self.actualizar_razas("Perro")  # carga inicial
 
 
-        self.ver_Paciente=QPushButton("Ver pacientes",self)
-        self.ver_Paciente.move(100,150)
-        self.ver_Paciente.clicked.connect(self.mostrar_pacientes)
-        
-        self.pacientes=QComboBox()
-        self.pacientes.addItems(["Paciente 1", "Paciente 2", "Paciente 3"])
-        self.pacientes.hide()
-        layout = QVBoxLayout()
-        layout.addWidget(self.ver_Paciente)
-        layout.addWidget(self.pacientes)
-        self.setLayout(layout)
-        container=QWidget()
-        container.setLayout(layout_doc)
-        self.setCentralWidget(container)
-        
+    def actualizar_razas(self, especie):
+        self.raza_mascota.clear()
+        if especie == "Perro":
+            self.raza_mascota.addItems(self.razas_perro)
+        elif especie == "Gato":
+            self.raza_mascota.addItems(self.razas_gato)
+  
+
     def mostrar_pacientes(self):
         self.pacientes.show()
         self.ver_Paciente.hide()
 
-    def recepcion(self):
-
-        self.label=QLabel("recepcion")
+    def simular_guardado(self):
+        nombre = self.nombre_paciente.text()
+        edad = self.edad_paciente.value()
+        sintomas = self.sintomas_paciente.text()
         
-        layout_admin=QHBoxLayout()
+        mensaje = f"Información capturada:\nNombre: {nombre}\nEdad: {edad}\nSíntomas: {sintomas}"
+        QMessageBox.information(self, "Datos del paciente", mensaje)
 
-        layout_admin.addWidget(self.label)
+    def administrador(self):
+        self.label = QLabel("Bienvenido Administrador", self)
+        self.label.move(50, 50)
+        self.label.setFont(QFont("Arial", 20))
+        self.label.adjustSize()
+        self.add = QPushButton("Agregar usuario", self)
+        self.add.move(200, 100)
 
-        container=QWidget()
-        container.setLayout(layout_admin)
-        self.setCentralWidget(container)
+        self.add.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.add.setFixedWidth(100)
+
+    def recepcion(self):
+        self.label = QLabel("Recepción", self)
+        self.label.move(50, 50)
+        self.label.setFont(QFont("Arial", 20))
+        self.label.adjustSize()
         
        
 
