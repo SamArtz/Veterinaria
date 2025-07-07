@@ -2,7 +2,8 @@ from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabe
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont
 from sql import mysql_connect
-
+import json
+import os
 
 
 class mini_ventana_elim_productos(QWidget):
@@ -130,6 +131,29 @@ class mini_ventana_productos(QWidget):
 
         
 
+class mini_ventana_usuarios(mini_ventana_productos):
+    def __init__(self):
+        super().__init__()
+
+        self.nombre_prod.setText("Nombre de usuario:")
+        self.descripcion_prod.setText("Contraseña:")
+        self.descripcion_prod_line.setEchoMode(QLineEdit.EchoMode.Password)
+        self.add_product.hide()
+        self.add_user=QPushButton(self)
+        self.add_user.setText("Agregar usuario")
+        self.add_user.setFont(QFont("Arial",13))
+        self.add_user.move(100,350)
+        self.add_user.setFixedSize(300,40)
+        self.precio_prod.hide()
+        self.precio_prod_line.hide()
+        self.stock.hide()
+        self.stock_line.hide()
+
+        principal=pantalla_inicial()
+        self.add_user.clicked.connect()
+
+
+
 
 class pantalla_inicial(QMainWindow):
     def __init__(self):
@@ -150,6 +174,32 @@ class pantalla_inicial(QMainWindow):
             "pedro89": "clave89",
             "usuario_test": "test123"
             }
+
+        self.RUTA_ARCHIVO = "credenciales.json"
+
+        if not os.path.exists(self.RUTA_ARCHIVO):
+            datos_iniciales = {
+                "admin": {
+                    "admin": "admin1234"
+                },
+                "doctor": {
+                    "pedro89": "clave89",
+                    "usuario_test": "test123"
+                },
+                "usuario": {
+                    "juan123": "pass123",
+                    "maria456": "maria_pass",
+                    "pedro89": "clave89",
+                    "usuario_test": "test123"
+                }
+            }
+
+            with open(self.RUTA_ARCHIVO, "w") as f:
+                json.dump(datos_iniciales, f, indent=4)
+
+        self.credenciales = self.cargar_credenciales()
+
+
 
         self.setWindowTitle("Login")
 
@@ -188,13 +238,40 @@ class pantalla_inicial(QMainWindow):
         container.setLayout(layout_princ)
         self.setCentralWidget(container)
 
+
+    def cargar_credenciales(self):
+            with open(self.RUTA_ARCHIVO, "r") as f:
+                return json.load(f)
+            
+    def guardar_credenciales(self):
+        with open(self.RUTA_ARCHIVO, "w") as f:
+            json.dump(self.credenciales, f, indent=4)
+
+        
+
+    def agregar_usuario(self, rol, usuario, clave):
+        self.credenciales[rol][usuario] = clave
+        self.guardar_credenciales()
+
     # Comprueba si las credenciales ingresadas son correctas
+
+    def cargar_credenciales(self):
+        with open("credenciales.json", "r") as f:
+            return json.load(f)
+        
+    def guardar_credenciales(self):
+        with open("credenciales.json", "w") as f:
+            json.dump(self.credenciales, f, indent=4)
+    
     def comprobar_cred(self):
-        if self.nombre_line.text() in self.usuarios and self.usuarios[self.nombre_line.text()] == self.contra_line.text()and self.profile==2:
+        usuario=self.nombre_line.text()
+        clave=self.contra_line.text()
+        rol=self.comb_Log.currentText()
+        if rol == "Administrador" and usuario in self.credenciales["admin"] and self.credenciales["admin"][usuario] == clave:
             self.programa()
-        elif self.nombre_line.text() in self.doctor and self.doctor[self.nombre_line.text()] == self.contra_line.text()and self.profile==3:
+        elif rol == "Doctor" and usuario in self.credenciales["doctor"] and self.credenciales["doctor"][usuario] == clave:
             self.programa()
-        elif self.nombre_line.text() in self.admin and self.admin[self.nombre_line.text()] == self.contra_line.text()and self.profile==1:
+        elif rol == "Recepcion" and usuario in self.credenciales["usuario"] and self.credenciales["usuario"][usuario] == clave:
             self.programa()
         else:
             QMessageBox.information(self, "Credenciales incorrectas", "La contraseña o el nombre de usuario son incorrectos. Vuelva a intentarlo")
@@ -337,6 +414,8 @@ class ventana_principal(QMainWindow):
         self.addp.clicked.connect(self.agregar_productos)
         self.rmp.clicked.connect(self.eliminar_productos)
         self.edit_prod.clicked.connect(self.edit_productos)
+        self.add.clicked.connect(self.agregar_usuariobtn)
+        
 
         #self.add.clicked.connect()
         
@@ -397,6 +476,10 @@ class ventana_principal(QMainWindow):
         self.ventana_extra = edit_prod()
         self.ventana_extra.show()
 
+    def agregar_usuariobtn(self):
+        conexion=mysql_connect()
+        self.ventana_extra = mini_ventana_usuarios()
+        self.ventana_extra.show()
 
             
 
