@@ -150,7 +150,7 @@ class mini_ventana_usuarios(mini_ventana_productos):
         self.stock_line.hide()
 
         principal=pantalla_inicial()
-        self.add_user.clicked.connect()
+        #self.add_user.clicked.connect()
 
 
 
@@ -621,16 +621,6 @@ class ventana_principal(QMainWindow):
         mensaje = f"Información capturada:\nNombre: {nombre}\nEdad: {edad}\nSíntomas: {sintomas}"
         QMessageBox.information(self, "Datos del paciente", mensaje)
 
-    def administrador(self):
-        self.label = QLabel("Bienvenido Administrador", self)
-        self.label.move(50, 50)
-        self.label.setFont(QFont("Arial", 20))
-        self.label.adjustSize()
-        self.add = QPushButton("Agregar usuario", self)
-        self.add.move(200, 100)
-
-        self.add.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        self.add.setFixedWidth(100)
 
     def recepcion(self):
         self.label = QLabel("Recepción", self)
