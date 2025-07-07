@@ -1,12 +1,14 @@
 {
-    "admin": {
-        "admin": "admin1234"
+    "Administrador": {
+        "admin": "admin1234",
+        "admin2": "root",
+        "admin3": "root"
     },
-    "doctor": {
+    "Doctor": {
         "pedro89": "clave89",
         "usuario_test": "test123"
     },
-    "usuario": {
+    "Recepcion": {
         "juan123": "pass123",
         "maria456": "maria_pass",
         "pedro89": "clave89",

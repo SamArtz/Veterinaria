@@ -132,12 +132,22 @@ class mini_ventana_productos(QWidget):
         
 
 class mini_ventana_usuarios(mini_ventana_productos):
-    def __init__(self):
+    def __init__(self,rol):
         super().__init__()
 
         self.nombre_prod.setText("Nombre de usuario:")
         self.descripcion_prod.setText("Contraseña:")
-        self.descripcion_prod_line.setEchoMode(QLineEdit.EchoMode.Password)
+        self.nombre_prod_line.hide()
+        self.descripcion_prod_line.hide()
+        self.user_line=QLineEdit(self)
+        
+        self.user_line.setFixedSize(200,28)
+        self.user_line.move(200,80)
+        self.pass_line=QLineEdit(self)
+        self.pass_line.setEchoMode(QLineEdit.EchoMode.Password)
+        self.pass_line.setFixedSize(200,28)
+        self.pass_line.move(200,150)
+        #self.descripcion_prod_line.setEchoMode(QLineEdit.EchoMode.Password)
         self.add_product.hide()
         self.add_user=QPushButton(self)
         self.add_user.setText("Agregar usuario")
@@ -148,10 +158,22 @@ class mini_ventana_usuarios(mini_ventana_productos):
         self.precio_prod_line.hide()
         self.stock.hide()
         self.stock_line.hide()
+        self.rol=QLabel(str(rol),self)
+        self.rol.move(100,400)
+        self.rolstr=str(self.rol.text())
 
-        principal=pantalla_inicial()
-        #self.add_user.clicked.connect()
 
+        self.principal=pantalla_inicial()
+        
+        self.add_user.clicked.connect(self.agregar_def)
+
+    def agregar_def(self):
+        rol=self.rolstr
+        usuario=self.user_line.text()
+        clave=self.pass_line.text()
+        self.principal.agregar_usuario(rol,usuario,clave)
+        QMessageBox.information(self, "Usuario agregado correctamente.","El usuario ha sido agregado con exito!")
+        
 
 
 
@@ -179,14 +201,14 @@ class pantalla_inicial(QMainWindow):
 
         if not os.path.exists(self.RUTA_ARCHIVO):
             datos_iniciales = {
-                "admin": {
+                "Administrador": {
                     "admin": "admin1234"
                 },
-                "doctor": {
+                "Doctor": {
                     "pedro89": "clave89",
                     "usuario_test": "test123"
                 },
-                "usuario": {
+                "Recepcion": {
                     "juan123": "pass123",
                     "maria456": "maria_pass",
                     "pedro89": "clave89",
@@ -267,11 +289,11 @@ class pantalla_inicial(QMainWindow):
         usuario=self.nombre_line.text()
         clave=self.contra_line.text()
         rol=self.comb_Log.currentText()
-        if rol == "Administrador" and usuario in self.credenciales["admin"] and self.credenciales["admin"][usuario] == clave:
+        if rol == "Administrador" and usuario in self.credenciales["Administrador"] and self.credenciales["Administrador"][usuario] == clave:
             self.programa()
-        elif rol == "Doctor" and usuario in self.credenciales["doctor"] and self.credenciales["doctor"][usuario] == clave:
+        elif rol == "Doctor" and usuario in self.credenciales["Doctor"] and self.credenciales["Doctor"][usuario] == clave:
             self.programa()
-        elif rol == "Recepcion" and usuario in self.credenciales["usuario"] and self.credenciales["usuario"][usuario] == clave:
+        elif rol == "Recepcion" and usuario in self.credenciales["Recepcion"] and self.credenciales["Usuario"][usuario] == clave:
             self.programa()
         else:
             QMessageBox.information(self, "Credenciales incorrectas", "La contraseña o el nombre de usuario son incorrectos. Vuelva a intentarlo")
@@ -319,6 +341,7 @@ class ventana_principal(QMainWindow):
         self.label.move(50,50)
         self.label.setFont(QFont("Arial", 20))
         self.label.adjustSize()
+        self.setFixedSize(1300,800)
 
         #Usuarios
         self.usuarios_label=QLabel("Tipo de usuario: ",self) 
@@ -605,8 +628,9 @@ class ventana_principal(QMainWindow):
         self.ventana_extra.show()
 
     def agregar_usuariobtn(self):
+
         conexion=mysql_connect()
-        self.ventana_extra = mini_ventana_usuarios()
+        self.ventana_extra = mini_ventana_usuarios(self.usuario_combo.currentText())
         self.ventana_extra.show()
 
     def mostrar_pacientes(self):
