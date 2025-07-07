@@ -376,14 +376,14 @@ class ventana_principal(QMainWindow):
         self.apellido_line.setFixedSize(400,28)
         self.apellido_line.move(200,235)
 
-        self.direccion=QLabel("Telefono: ",self)
-        self.direccion.move(650,240)
-        self.direccion.setFont(QFont("Arial", 13))
-        self.direccion.adjustSize()
+        self.telefono=QLabel("Telefono: ",self)
+        self.telefono.move(650,240)
+        self.telefono.setFont(QFont("Arial", 13))
+        self.telefono.adjustSize()
         
-        self.direccion_line=QLineEdit(self)
-        self.direccion_line.setFixedSize(400,28)
-        self.direccion_line.move(750,235)
+        self.telefono_line=QLineEdit(self)
+        self.telefono_line.setFixedSize(400,28)
+        self.telefono_line.move(750,235)
 
         self.direccion=QLabel("Direccion: ",self)
         self.direccion.move(650,180)
@@ -628,8 +628,19 @@ class ventana_principal(QMainWindow):
         self.ventana_extra.show()
 
     def agregar_usuariobtn(self):
+        nombre=self.usuario_line.text()
+        apellido=self.apellido_line.text()
+        correo=self.direccion_line.text()
+        telefono=self.telefono_line.text()
+        especialidad=self.especialidad_line.text()
 
         conexion=mysql_connect()
+        if self.usuario_combo.currentText()=="Doctor":
+            conexion.agregar_user(nombre,apellido,correo,telefono,especialidad)
+        elif self.usuario_combo.currentText()=="Recepcion":
+            especialidad=""
+            conexion.agregar_user(nombre,apellido,correo,telefono,especialidad)
+        
         self.ventana_extra = mini_ventana_usuarios(self.usuario_combo.currentText())
         self.ventana_extra.show()
 

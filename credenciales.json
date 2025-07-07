@@ -2,16 +2,24 @@
     "Administrador": {
         "admin": "admin1234",
         "admin2": "root",
-        "admin3": "root"
+        "admin3": "root",
+        "admin4": "root"
     },
     "Doctor": {
         "pedro89": "clave89",
-        "usuario_test": "test123"
+        "usuario_test": "test123",
+        "Roberto": "1234",
+        "carlos": "1234",
+        "rodrigo": "1234"
     },
     "Recepcion": {
         "juan123": "pass123",
         "maria456": "maria_pass",
         "pedro89": "clave89",
-        "usuario_test": "test123"
+        "usuario_test": "test123",
+        "juan": "1234",
+        "Abdiel": "1234",
+        "Reina": "1234",
+        "adrian": "1234"
     }
 }

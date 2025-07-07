@@ -51,6 +51,16 @@ class mysql_connect():
         self.cursor.execute(query)
         print(f"{query} Editado exitosamente")
         self.conexion.commit()
+    
+    def agregar_user(self,nombre,apellido,correo,telefono,especialidad):
+        if especialidad=="":
+            query=f"INSERT INTO Vendedores (Nombre_Vendedor, Apellido_Vendedor, Telefono_Vendedor, Correo_Vendedor) VALUES ('{nombre}', '{apellido}', '{telefono}', '{correo}')"
+            self.cursor.execute(query)
+            self.conexion.commit()
+        else:
+            query=f"INSERT INTO doctor (Nombre, Apellido, Especialidad, Telefono, Correo_elec) VALUES ('{nombre}', '{apellido}', '{especialidad}', '{telefono}','{correo}')"
+            self.cursor.execute(query)
+            self.conexion.commit()
 
     
 
