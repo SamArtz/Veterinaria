@@ -62,6 +62,47 @@ class mysql_connect():
             self.cursor.execute(query)
             self.conexion.commit()
 
+    def consultar_clientes(self):
+        self.cursor.execute("SELECT Nombre FROM cliente")
+        return [fila[0] for fila in self.cursor.fetchall()]
+
+    def consultar_productos(self):
+        self.cursor.execute("SELECT nombre_producto FROM productos")
+        return [fila[0] for fila in self.cursor.fetchall()]
+
+    def consultar_mascotas(self):
+        self.cursor.execute("SELECT nombre FROM mascota")
+        return [fila[0] for fila in self.cursor.fetchall()]
+
+    def consultar_veterinarios(self):
+        self.cursor.execute("SELECT nombre FROM veterinario")
+        return [fila[0] for fila in self.cursor.fetchall()]
+    
+    def obtener_consultas_por_cliente(self, nombre_cliente):
+    # 1. Buscar ID del cliente
+        self.cursor.execute("SELECT id_cliente FROM cliente WHERE nombre = %s", (nombre_cliente,))
+        resultado = self.cursor.fetchone()
+        if not resultado:
+            return []
+
+        id_cliente = resultado[0]
+
+        # 2. Buscar ID de consultas del cliente (vía mascota)
+        query = """
+            SELECT c.id_consultas
+            FROM consultas c
+            JOIN mascota m ON c.Id_Mascota = m.Id_Mascota
+            WHERE m.Id_cliente = %s
+            ORDER BY c.fecha_consult DESC
+        """
+        self.cursor.execute(query, (id_cliente,))
+        return [fila[0] for fila in self.cursor.fetchall()]
+    
+    def obtener_precio_producto(self, nombre_producto):
+        self.cursor.execute("SELECT precio_producto FROM productos WHERE nombre_producto = %s", (nombre_producto,))
+        resultado = self.cursor.fetchone()
+        return resultado[0] if resultado else 0.0
+
     
 
 

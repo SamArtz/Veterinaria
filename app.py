@@ -1,9 +1,10 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy, QGridLayout, QFormLayout, QDateEdit, QCheckBox
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy, QGridLayout, QFormLayout, QDateEdit, QCheckBox, QDoubleSpinBox, QCompleter,QDialog
 from PyQt6.QtCore import Qt, QDateTime
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy, QGridLayout,QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy, QGridLayout,QTableWidget, QTableWidgetItem,QDialog
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont
 from sql import mysql_connect
+from decimal import Decimal
 import json
 import os
 
@@ -679,32 +680,42 @@ class ventana_principal(QMainWindow):
         container=QWidget()
         container.setLayout(layout_admin)
         self.setCentralWidget(container)
-        self.setFixedSize(900, 1000)
+        self.setFixedSize(1100, 600)
         
-        layout_section_0 = QHBoxLayout()
-        self.label = QLabel("Recepción", self)
-        self.label.move(50, 50)
-        self.label.setFont(QFont("Arial", 20))
-        self.label.adjustSize()
+        self.layout_section_0 = QHBoxLayout()
+        self.layout_section_0.setSpacing(2)
         
-       
-
+        fuente=QFont()
+        fuente.setPointSize(14)
         
-        self.checkBox_0 = QPushButton("Registrar mascota")
+        self.checkBox_0 = QPushButton("Registrar cliente")
         self.checkBox_0.setCheckable(True)
-        self.checkBox_0.setStyleSheet(" QPushButton { width: 180px; height: 25px; font-size: 18px; } ")
-        layout_section_0.addWidget(self.checkBox_0, alignment=Qt.AlignmentFlag.AlignRight)
+        self.checkBox_0.setFont(fuente)
+        self.checkBox_0.setFixedSize(150,35)
+        #self.checkBox_0.setStyleSheet(" QPushButton { width: 180px; height: 25px; font-size: 18px; } ")
+        self.layout_section_0.addWidget(self.checkBox_0)
         self.checkBox_0.clicked.connect(self.gestor_formularios)
         
-        self.checkBox_1 = QPushButton("Registrar veterinario")
+        self.checkBox_1 = QPushButton("Registrar cita")
         self.checkBox_1.setCheckable(True)
-        self.checkBox_1.setStyleSheet(" QPushButton { width: 150px; height: 25px; font-size: 18px; } ")
-        layout_section_0.addWidget(self.checkBox_1, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.checkBox_1.setFont(fuente)
+        self.checkBox_1.setFixedSize(150,35)
+        #self.checkBox_1.setStyleSheet(" QPushButton { width: 150px; height: 25px; font-size: 18px; } ")
+        self.layout_section_0.addWidget(self.checkBox_1)
         self.checkBox_1.clicked.connect(self.gestor_formularios)
-        
-        layout_admin.addLayout(layout_section_0)
 
-        layout_section_1 = QHBoxLayout()
+        self.button_factura = QPushButton("Factura")
+        self.button_factura.setCheckable(True)
+        self.button_factura.setFixedSize(150,35)
+        self.button_factura.setFont(fuente)
+
+        #self.button_factura.setStyleSheet(" QPushButton{ width: 80px; height: 25px; font-size: 18px; } ")
+        self.layout_section_0.addWidget(self.button_factura)
+        self.button_factura.clicked.connect(self.abrir_ventana_factura)
+        
+        layout_admin.addLayout(self.layout_section_0)
+
+        self.layout_section_1 = QHBoxLayout()
         
         self.formulario_admin_0 = QFormLayout ()
         
@@ -722,7 +733,7 @@ class ventana_principal(QMainWindow):
         
         self.input_mascota_1 = QLineEdit()
         self.input_mascota_1.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
-        self.formulario_admin_0.addRow("Edad de la mascota:", self.input_mascota_1)
+        self.formulario_admin_0.addRow("apellido de la mascota:", self.input_mascota_1)
         self.item_mascota_1 = self.formulario_admin_0.itemAt(2, QFormLayout.ItemRole.LabelRole)
         self.item_mascota_1 = self.item_mascota_1.widget()
         self.item_mascota_1.setStyleSheet("  font-size: 20px; ")
@@ -736,52 +747,66 @@ class ventana_principal(QMainWindow):
         
         self.input_mascota_3 = QLineEdit()
         self.input_mascota_3.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
-        self.formulario_admin_0.addRow("Dueño de la mascota:", self.input_mascota_3)
+        self.formulario_admin_0.addRow("Raza de la mascota:", self.input_mascota_3)
         self.item_mascota_3 = self.formulario_admin_0.itemAt(4, QFormLayout.ItemRole.LabelRole )
         self.item_mascota_3 = self.item_mascota_3.widget()
         self.item_mascota_3.setStyleSheet("  font-size: 20px; ")
         
-        self.button_mascota_0 = QPushButton("Registrar")
-        self.button_mascota_0.setStyleSheet(" QPushButton { height: 25px; font-size: 18px; max-width: 500px;} ")
-        self.formulario_admin_0.addWidget(self.button_mascota_0)
-        self.button_mascota_0.clicked.connect(self.agregar_mascota)
+        self.spin_mascota_0 = QSpinBox()
+        self.spin_mascota_0.setRange(0, 30)
+        self.spin_mascota_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
+        self.formulario_admin_0.addRow("Edad de la mascota :", self.spin_mascota_0)
+        self.item_mascota_4 = self.formulario_admin_0.itemAt(5, QFormLayout.ItemRole.LabelRole )
+        self.item_mascota_4 = self.item_mascota_4.widget()
+        self.item_mascota_4.setStyleSheet("  font-size: 20px; ")
         
-        layout_section_1.addLayout(self.formulario_admin_0)
+        self.layout_section_1.addLayout(self.formulario_admin_0)
         self.formulario_admin_1 = QFormLayout()
         
-        self.label_veterinario_0 = QLabel("Agregar un nuevo veterinario")
-        self.label_veterinario_0.setStyleSheet(" font: 20px; ")
-        self.formulario_admin_1.addWidget(self.label_veterinario_0)
+        self.label_dueno_0 = QLabel("Agregar un nuevo dueño")
+        self.label_dueno_0.setStyleSheet(" font: 20px; ")
+        self.formulario_admin_1.addWidget(self.label_dueno_0)
         
-        self.input_veterinario_0 = QLineEdit()
+        self.layout_section_1.addLayout(self.formulario_admin_1)
+        layout_admin.addLayout(self.layout_section_1)
         
-        layout_section_1.addLayout(self.formulario_admin_1)
-        layout_admin.addLayout(layout_section_1)
+        self.input_dueno_0 = QLineEdit()
+        self.input_dueno_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px; ")
+        self.formulario_admin_1.addRow("Nombre del dueño:", self.input_dueno_0)
+        self.item_dueno_0 = self.formulario_admin_1.itemAt(1, QFormLayout.ItemRole.LabelRole )
+        self.item_dueno_0 = self.item_dueno_0.widget()
+        self.item_dueno_0.setStyleSheet(" font-size: 20px; ")
         
-        self.input_veterinario_0 = QLineEdit()
-        self.input_veterinario_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px; ")
-        self.formulario_admin_1.addRow("Nombre :", self.input_veterinario_0)
-        self.item_veterinario_0 = self.formulario_admin_1.itemAt(1, QFormLayout.ItemRole.LabelRole )
-        self.item_veterinario_0 = self.item_veterinario_0.widget()
-        self.item_veterinario_0.setStyleSheet(" font-size: 20px; ")
+        self.input_dueno_1 = QLineEdit()
+        self.input_dueno_1.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px; ")
+        self.formulario_admin_1.addRow("Apellido del dueño:", self.input_dueno_1)
+        self.item_dueno_1 = self.formulario_admin_1.itemAt(2, QFormLayout.ItemRole.LabelRole )
+        self.item_dueno_1 = self.item_dueno_1.widget()
+        self.item_dueno_1.setStyleSheet(" font-size: 20px; ")
         
-        self.input_veterinario_1 = QLineEdit()
-        self.input_veterinario_1.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px; ")
-        self.formulario_admin_1.addRow("Especialidad :", self.input_veterinario_1)
-        self.item_veterinario_1 = self.formulario_admin_1.itemAt(2, QFormLayout.ItemRole.LabelRole )
-        self.item_veterinario_1 = self.item_veterinario_1.widget()
-        self.item_veterinario_1.setStyleSheet(" font-size: 20px; ")
+        self.input_dueno_2 = QLineEdit()
+        self.input_dueno_2.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px; ")
+        self.formulario_admin_1.addRow("Direccion del dueño:", self.input_dueno_2)
+        self.item_dueno_2 = self.formulario_admin_1.itemAt(3, QFormLayout.ItemRole.LabelRole )
+        self.item_dueno_2 = self.item_dueno_2.widget()
+        self.item_dueno_2.setStyleSheet(" font-size: 20px; ")
         
-        self.fecha_veterinario_0 = QDateEdit()
-        self.fecha_veterinario_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
-        self.fecha_veterinario_0.setCalendarPopup(True)
-        self.fecha_veterinario_0.setDateTime(QDateTime.currentDateTime())
-        self.formulario_admin_1.addRow("Fecha de ingreso: ", self.fecha_veterinario_0)
-        self.item_veterinario_1 = self.formulario_admin_1.itemAt(3, QFormLayout.ItemRole.LabelRole )
-        self.item_veterinario_1 = self.item_veterinario_1.widget()
-        self.item_veterinario_1.setStyleSheet(" font-size: 20px;")
+        self.input_dueno_3 = QLineEdit()
+        self.input_dueno_3.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px; ")
+        self.formulario_admin_1.addRow("Correo electronico:", self.input_dueno_3)
+        self.item_dueno_3 = self.formulario_admin_1.itemAt(4, QFormLayout.ItemRole.LabelRole )
+        self.item_dueno_3 = self.item_dueno_3.widget()
+        self.item_dueno_3.setStyleSheet(" font-size: 20px; ")
         
-        layout_section_2 = QHBoxLayout()
+        self.fecha_dueno_0 = QDateEdit()
+        self.fecha_dueno_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
+        self.fecha_dueno_0.setCalendarPopup(True)
+        self.fecha_dueno_0.setDateTime(QDateTime.currentDateTime())
+        self.formulario_admin_1.addRow("Fecha de nacimiento: ", self.fecha_dueno_0)
+        self.item_dueno_1 = self.formulario_admin_1.itemAt(5, QFormLayout.ItemRole.LabelRole )
+        self.item_dueno_1 = self.item_dueno_1.widget()
+        self.item_dueno_1.setStyleSheet(" font-size: 20px;")
+        
         self.formulario_cita_1 = QFormLayout ()
         
         
@@ -797,66 +822,99 @@ class ventana_principal(QMainWindow):
         self.item_cita_0 = self.item_cita_0.widget()
         self.item_cita_0.setStyleSheet(" font-size: 20px;")
         
+        self.combo_cita_1 = QComboBox()
+        self.combo_cita_1.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
+        self.formulario_cita_1.addRow("Veterianario asignado: ", self.combo_cita_1)
+        self.item_cita_1 = self.formulario_cita_1.itemAt(2, QFormLayout.ItemRole.LabelRole )
+        self.item_cita_1 = self.item_cita_1.widget()
+        self.item_cita_1.setStyleSheet(" font-size: 20px;")
+        
         self.fecha_cita_0 = QDateEdit()
         self.fecha_cita_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
         self.fecha_cita_0.setCalendarPopup(True)
         self.fecha_cita_0.setDateTime(QDateTime.currentDateTime())
         self.formulario_cita_1.addRow("Fecha de la cita: ", self.fecha_cita_0)
-        self.item_cita_1 = self.formulario_cita_1.itemAt(2, QFormLayout.ItemRole.LabelRole )
-        self.item_cita_1 = self.item_cita_1.widget()
-        self.item_cita_1.setStyleSheet(" font-size: 20px;")
-        
-        self.input_cita_0 = QLineEdit()
-        self.input_cita_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
-        self.formulario_cita_1.addRow("Detalles de la cita: ", self.input_cita_0)
         self.item_cita_2 = self.formulario_cita_1.itemAt(3, QFormLayout.ItemRole.LabelRole )
         self.item_cita_2 = self.item_cita_2.widget()
-        self.item_cita_2.setStyleSheet(" font-size: 20px;")
+        self.item_cita_2.setStyleSheet(" font-size: 20px; ")
         
-        self.button_cita_0 = QPushButton("Registrar")
-        self.button_cita_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px")
-        self.formulario_cita_1.addWidget(self.button_cita_0)
+        self.input_cita_0 = QLineEdit()
+        self.input_cita_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px; ")
+        self.formulario_cita_1.addRow("Motivo de la cita: ", self.input_cita_0)
+        self.item_cita_3 = self.formulario_cita_1.itemAt(4, QFormLayout.ItemRole.LabelRole )
+        self.item_cita_3 = self.item_cita_3.widget()
+        self.item_cita_3.setStyleSheet(" font-size: 20px; ")
         
-        layout_section_2.addLayout(self.formulario_cita_1)
-        layout_admin.addLayout(layout_section_1)
-        
-        self.formulario_admin_1.setRowVisible(0, False)
-        self.formulario_admin_1.setRowVisible(1, False)
-        self.formulario_admin_1.setRowVisible(2, False)
-        self.formulario_admin_1.setRowVisible(3, False)
-        #self.formulario_admin_1.setRowVisible(4, False)
+        self.spin_cita_0 = QDoubleSpinBox()
+        self.spin_cita_0.setPrefix("$")
+        self.spin_cita_0.setDecimals(2)
+        self.spin_cita_0.setRange(0, 1000)
+        self.spin_cita_0.setSingleStep(0.25)
+        self.spin_cita_0.setStyleSheet("  height: 25px; font-size: 20px; max-width: 500px; ")
+        self.formulario_cita_1.addRow("Precio de la cita: ", self.spin_cita_0)
+        self.item_cita_4 = self.formulario_cita_1.itemAt(5, QFormLayout.ItemRole.LabelRole )
+        self.item_cita_4 = self.item_cita_4.widget()
+        self.item_cita_4.setStyleSheet(" font-size: 20px; ")
 
-        layout_admin.addLayout(layout_section_2)
         
-        layout_section_3 = QHBoxLayout()
+        self.layout_section_1.addLayout(self.formulario_cita_1)
+
+        self.layout_section_2 = QHBoxLayout()
+
+        self.button_registrar_cliente = QPushButton("Registrar cliente")
+        self.button_registrar_cliente.setStyleSheet(" max-width: 200px; height: 25px; font-size: 20px; ")
+        self.layout_section_2.addWidget(self.button_registrar_cliente)
+        
+        self.button_registrar_cita = QPushButton("Registrar cita")
+        self.button_registrar_cita.setStyleSheet(" max-width: 200px; height: 25px; font-size: 20px; ")
+        self.layout_section_2.addWidget(self.button_registrar_cita)
+        
+        layout_admin.addLayout(self.layout_section_2)
+        
+        for a in range(self.formulario_cita_1.rowCount()):
+            self.formulario_cita_1.setRowVisible(a, False)
+        self.button_registrar_cita.setVisible(False)
+
+        
+        self.layout_section_3 = QHBoxLayout()
         
         self.button_mostrar_0 = QPushButton("Mascotas resgistradar")
         self.button_mostrar_0.setStyleSheet(" max-width: 200px; font: 19px;")
-        layout_section_3.addWidget(self.button_mostrar_0)
+        self.layout_section_3.addWidget(self.button_mostrar_0)
         self.button_mostrar_0.clicked.connect(self.botones_mostrar)
 
         self.button_mostrar_1 = QPushButton("Citas pendientes")
         self.button_mostrar_1.setStyleSheet(" max-width: 200px; font: 19px;")
-        layout_section_3.addWidget(self.button_mostrar_1)
+        self.layout_section_3.addWidget(self.button_mostrar_1)
 
         self.button_mostrar_2 = QPushButton("Veterinarios")
         self.button_mostrar_2.setStyleSheet(" max-width: 200px; font: 19px;")
-        layout_section_3.addWidget(self.button_mostrar_2)
+        self.layout_section_3.addWidget(self.button_mostrar_2)
 
         self.button_mostrar_3 = QPushButton("Mascotas resgistradar")
         self.button_mostrar_3.setStyleSheet(" max-width: 200px; font: 19px;")
-        layout_section_3.addWidget(self.button_mostrar_3)
+        self.layout_section_3.addWidget(self.button_mostrar_3)
         
-        layout_admin.addLayout(layout_section_3)
+        layout_admin.addLayout(self.layout_section_3)
         
-        layout_section_4 = QVBoxLayout()
+        self.layout_section_4 = QVBoxLayout()
         
         self.label_mostrar_0 = QLabel("Algo")
         self.label_mostrar_0.setStyleSheet(" font-size: 20px; ")
         
-        layout_section_4.addWidget(self.label_mostrar_0)
-        layout_admin.addLayout(layout_section_4)
+        self.layout_section_4.addWidget(self.label_mostrar_0)
+        layout_admin.addLayout(self.layout_section_4)
+        self.productos_agregados = []
+
+    def abrir_ventana_factura(self):
+        ventana = VentanaFactura(self)
+        print(type(ventana))
+        ventana.exec() 
         
+        
+
+    
+
     def gestor_formularios(self):
         # Si los dos quedan marcados, deja solo el que se acaba de marcar
         sender_0 = self.sender()
@@ -865,35 +923,39 @@ class ventana_principal(QMainWindow):
             self.checkBox_1.setChecked(False)
             self.checkBox_1.blockSignals(False)
             
-            self.formulario_admin_1.setRowVisible(0, False)
-            self.formulario_admin_1.setRowVisible(1, False)
-            self.formulario_admin_1.setRowVisible(2, False)
-            self.formulario_admin_1.setRowVisible(3, False)
+            self.button_registrar_cita.setVisible(False)
+            self.button_registrar_cliente.setVisible(True)
             
-            self.formulario_admin_0.setRowVisible(0, True)
-            self.formulario_admin_0.setRowVisible(1, True)
-            self.formulario_admin_0.setRowVisible(2, True)
-            self.formulario_admin_0.setRowVisible(3, True)
-            self.formulario_admin_0.setRowVisible(4, True)
-            self.formulario_admin_0.setRowVisible(5, True)
+            for a in range(self.formulario_cita_1.rowCount()):
+                self.formulario_cita_1.setRowVisible(a, False)
+            
+            for a in range(self.formulario_admin_1.rowCount()):
+                self.formulario_admin_1.setRowVisible(a, True)
+            
+            for a in range(self.formulario_admin_0.rowCount()):
+                self.formulario_admin_0.setRowVisible(a, True)
+
             
         elif sender_0 == self.checkBox_1:
             self.checkBox_0.blockSignals(True)
             self.checkBox_0.setChecked(False)
             self.checkBox_0.blockSignals(False)
+
+            self.button_registrar_cita.setVisible(True)
+            self.button_registrar_cliente.setVisible(False)
             
-            self.formulario_admin_1.setRowVisible(0, True)
-            self.formulario_admin_1.setRowVisible(1, True)
-            self.formulario_admin_1.setRowVisible(2, True)
-            self.formulario_admin_1.setRowVisible(3, True)
+            for a in range(self.formulario_cita_1.rowCount()):
+                self.formulario_cita_1.setRowVisible(a, True)
             
-            self.formulario_admin_0.setRowVisible(0, False)
-            self.formulario_admin_0.setRowVisible(1, False)
-            self.formulario_admin_0.setRowVisible(2, False)
-            self.formulario_admin_0.setRowVisible(3, False)
-            self.formulario_admin_0.setRowVisible(4, False)
-            self.formulario_admin_0.setRowVisible(5, False)
-                
+            for a in range(self.formulario_admin_1.rowCount()):
+                self.formulario_admin_1.setRowVisible(a, False)
+            
+            
+            for a in range(self.formulario_admin_0.rowCount()):
+                self.formulario_admin_0.setRowVisible(a, False)
+    
+        
+
     def agregar_mascota(self):
         nombre = self.input_mascota_0.text()
         edad = self.input_mascota_0.text()
@@ -916,7 +978,159 @@ class ventana_principal(QMainWindow):
         sender_1 = self.sender()
         if sender_1 == self.button_mostrar_0:
             self.label_mostrar_0.setText("Veterinarios")
+
+class VentanaFactura(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Nueva Factura")
+        self.setFixedSize(600, 500)
+
+        self.layout_principal = QVBoxLayout()
+        self.setLayout(self.layout_principal)
+
+        # Aquí colocas lo que tenías en mostrar_factura()
+        #self.mostrar_factura()
+
+    #def mostrar_factura(self):
+    # Limpiar contenido anterior del layout
         
+
+        # Instancia de conexión
+        db = mysql_connect()
+
+        # Layout del formulario de factura
+        form_factura = QFormLayout()
+        form_factura.setSpacing(12)
+
+        self.productos_layout = QVBoxLayout()
+
+       
+
+        # ======= Cliente =======
+        self.combo_cliente_factura = QComboBox()
+        self.combo_cliente_factura.setEditable(True)
+        self.combo_cliente_factura.addItem("-- Seleccione cliente --")
+        clientes = db.consultar_clientes()
+        self.combo_cliente_factura.addItems(clientes)
+        self.combo_cliente_factura.setCompleter(QCompleter(clientes))
+        self.combo_cliente_factura.setStyleSheet("font-size: 18px; height: 30px; max-width: 400px;")
+        form_factura.addRow("Cliente:", self.combo_cliente_factura)
+
+        # ======= Producto =======
+        self.combo_producto_factura = QComboBox()
+        self.combo_producto_factura.setEditable(True)
+        self.combo_producto_factura.addItem("Ninguno")
+        productos = db.consultar_productos()
+        self.combo_producto_factura.addItems(productos)
+        self.combo_producto_factura.setCompleter(QCompleter(["Ninguno"] + productos))
+        self.combo_producto_factura.setStyleSheet("font-size: 18px; height: 30px; max-width: 400px;")
+        form_factura.addRow("Producto:", self.combo_producto_factura)
+
+        # ======= Cantidad =======
+        self.spin_cantidad_factura = QSpinBox()
+        self.spin_cantidad_factura.setRange(0, 100)
+        self.spin_cantidad_factura.setStyleSheet("font-size: 18px; height: 30px; max-width: 120px;")
+        form_factura.addRow("Cantidad:", self.spin_cantidad_factura)
+
+        # ======= Precio de la consulta =======
+        self.combo_consultas = QComboBox()
+        self.combo_consultas.setEnabled(False)
+        self.combo_consultas.setStyleSheet("font-size: 18px; height: 30px; max-width: 200px;")
+        form_factura.addRow("Consulta:", self.combo_consultas)
+
+        # ======= Precio de la consulta =======
+        self.label_precio_consulta = QLabel("Seleccione cliente y consulta")
+        self.label_precio_consulta.setStyleSheet("font-size: 18px; color: gray;")
+        form_factura.addRow("Precio consulta:", self.label_precio_consulta)
+
+        self.label_precio_total = QLabel("$0.00")
+        self.label_precio_total.setStyleSheet("font-size: 18px; color: blue;")
+        form_factura.addRow("Precio total:", self.label_precio_total)
+
+        self.combo_cliente_factura.currentIndexChanged.connect(self.actualizar_consultas_del_cliente)
+        self.combo_consultas.currentIndexChanged.connect(self.actualizar_precio_consulta)
+
+        self.combo_producto_factura.currentIndexChanged.connect(self.actualizar_precio_total)
+        self.spin_cantidad_factura.valueChanged.connect(self.actualizar_precio_total)
+        self.combo_consultas.currentIndexChanged.connect(self.actualizar_precio_total) 
+
+
+        # Añadir el layout al contenedor
+        widget_factura = QWidget()
+        widget_factura.setLayout(form_factura)
+        self.layout_principal.addWidget(widget_factura)
+    
+
+
+    def actualizar_consultas_del_cliente(self):
+        nombre = self.combo_cliente_factura.currentText().strip()
+
+        if nombre == "" or nombre == "-- Seleccione cliente --":
+            self.combo_consultas.clear()
+            self.combo_consultas.setEnabled(False)
+            self.label_precio_consulta.setText("Seleccione un cliente válido")
+            self.label_precio_consulta.setStyleSheet("font-size: 18px; color: red;")
+            return
+
+        db = mysql_connect()
+
+        nombre = self.combo_cliente_factura.currentText()
+        consultas = db.obtener_consultas_por_cliente(nombre)
+
+        self.combo_consultas.clear()
+        if consultas:
+            self.combo_consultas.addItems([str(c) for c in consultas])
+            self.combo_consultas.setEnabled(True)
+        else:
+            self.combo_consultas.setEnabled(False)
+            self.label_precio_consulta.setText("No hay consultas registradas")
+            self.label_precio_consulta.setStyleSheet("font-size: 18px; color: red;")
+
+    def actualizar_precio_consulta(self):
+        
+        db = mysql_connect()
+
+        id_consulta = self.combo_consultas.currentText()
+        if not id_consulta:
+            return
+
+        db.cursor.execute("SELECT Id_precio FROM consultas WHERE Id_consultas = %s", (id_consulta,))
+        resultado = db.cursor.fetchone()
+
+        if resultado:
+            precio = resultado[0]
+            self.label_precio_consulta.setText(f"${precio:.2f}")
+            self.label_precio_consulta.setStyleSheet("font-size: 18px; color: green;")
+        else:
+            self.label_precio_consulta.setText("Consulta no encontrada")
+            self.label_precio_consulta.setStyleSheet("font-size: 18px; color: red;")
+
+    def actualizar_precio_total(self):
+        
+        db = mysql_connect()
+
+        # Obtener precio de la consulta actual
+        id_consulta = self.combo_consultas.currentText()
+        try:
+            db.cursor.execute("SELECT Id_precio FROM consultas WHERE Id_consultas = %s", (id_consulta,))
+            resultado = db.cursor.fetchone()
+            precio_consulta = resultado[0] if resultado else 0.0
+        except:
+            precio_consulta = 0.0
+
+        # Obtener precio del producto
+        nombre_producto = self.combo_producto_factura.currentText()
+        cantidad = self.spin_cantidad_factura.value()
+
+        if nombre_producto and nombre_producto != "Ninguno" and cantidad > 0:
+            precio_producto_unitario = db.obtener_precio_producto(nombre_producto)
+            precio_productos = precio_producto_unitario * cantidad
+        else:
+            precio_productos = 0.0
+
+        total = Decimal(precio_consulta) + Decimal(precio_productos)
+        self.label_precio_total.setText(f"${total:.2f}")
+    
        
 
         
