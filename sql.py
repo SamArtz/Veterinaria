@@ -102,6 +102,50 @@ class mysql_connect():
         self.cursor.execute("SELECT precio_producto FROM productos WHERE nombre_producto = %s", (nombre_producto,))
         resultado = self.cursor.fetchone()
         return resultado[0] if resultado else 0.0
+    
+    def get_citas_by_doctor_and_date(self, doctor_id, fecha):
+        query = """SELECT c.Id_Cita, cl.Nombre, m.Nombre, c.Hora, c.Motivo, c.Estado, c.Id_Mascota
+                 FROM cita c
+                 JOIN mascota m ON c.Id_Mascota = m.Id_Mascota
+                 JOIN cliente cl ON m.Id_Cliente = cl.Id_Cliente
+                 WHERE c.Id_Doctor = %s AND c.Fecha = %s
+                 ORDER BY c.Hora"""
+        self.cursor.execute(query, (doctor_id, fecha))
+        return self.cursor.fetchall()
+    
+    def get_historial_medico(self, mascota_id):
+        query = """SELECT Fecha, Motivo, Diagnostico, Tratamiento
+                 FROM consulta
+                 WHERE Id_Mascota = %s
+                 ORDER BY Fecha DESC"""
+        self.cursor.execute(query, (mascota_id,))
+        return self.cursor.fetchall()
+    
+    def agregar_consulta(self, id_cita, id_mascota, id_doctor, fecha, motivo, diagnostico, tratamiento):
+        query = """INSERT INTO consulta (Id_Cita, Id_Mascota, Id_Doctor, Fecha, Motivo, Diagnostico, Tratamiento)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+        values = (id_cita, id_mascota, id_doctor, fecha, motivo, diagnostico, tratamiento)
+        try:
+            self.cursor.execute(query, values)
+            self.conexion.commit()
+        except mysql.connector.Error as err:
+            print(f"Error al agregar consulta: {err}")
+            self.conexion.rollback()
+
+    def actualizar_estado_cita(self, id_cita, nuevo_estado):
+        query = "UPDATE consulta SET Estado = %s WHERE Id_Cita = %s"
+        try:
+            self.cursor.execute(query, (nuevo_estado, id_cita))
+            self.conexion.commit()
+        except mysql.connector.Error as err:
+            print(f"Error al actualizar estado de la cita: {err}")
+            self.conexion.rollback()
+
+    def close(self):
+        if self.conexion.is_connected():
+            self.cursor.close()
+            self.conexion.close()
+            print("Conexión a MySQL cerrada")
 
 
     def registrar_cliente_y_mascota(self, cliente_data, mascota_data):
