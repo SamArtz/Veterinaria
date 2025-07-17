@@ -103,7 +103,71 @@ class mysql_connect():
         resultado = self.cursor.fetchone()
         return resultado[0] if resultado else 0.0
 
-    
+
+    def registrar_cliente_y_mascota(self, cliente_data, mascota_data):
+        try:
+            # Insertar cliente
+            query_cliente = """
+                INSERT INTO cliente (Nombre, Apellido, Direccion,Telefono, Correo_elec, Fecha_nacimiento)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            self.cursor.execute(query_cliente, cliente_data)
+            cliente_id = self.cursor.lastrowid  # ID generado automáticamente
+
+            # Insertar mascota
+            query_mascota = """
+                INSERT INTO mascota (Id_cliente, especie, Raza, Edad, Nombre)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            self.cursor.execute(query_mascota, (cliente_id, *mascota_data))
+            self.conexion.commit()
+            return True
+
+        except mysql.connector.Error as err:
+            print("Error:", err)
+            self.conexion.rollback()
+            return False
+        
+    def registrar_cita(self, id_mascota, id_veterinario, fecha, motivo, precio):
+        try:
+            query = """
+                INSERT INTO consultas (Id_mascota, Id_doctor, Fecha_consult, Motiv_consult, Id_Precio)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            self.cursor.execute(query, (id_mascota, id_veterinario, fecha, motivo, precio))
+            self.conexion.commit()
+            return True
+        except mysql.connector.Error as err:
+            print("Error al registrar cita:", err)
+            self.conexion.rollback()
+            return False
+        
+    def obtener_mascotas_con_apellido_cliente(self):
+        try:
+            query = """
+                SELECT m.Id_Mascota, m.Nombre, c.Apellido
+                FROM mascota m
+                JOIN cliente c ON m.Id_cliente = c.Id_cliente
+            """
+            self.cursor.execute(query)
+            resultados = self.cursor.fetchall()
+            return [{"id": fila[0], "nombre": fila[1], "apellido_cliente": fila[2]} for fila in resultados]
+        except mysql.connector.Error as err:
+            print("Error al obtener mascotas:", err)
+            return []
+        
+    def obtener_veterinarios(self):
+        try:
+            query = "SELECT Id_doctor, Nombre, Apellido FROM doctor"
+            self.cursor.execute(query)
+            resultados = self.cursor.fetchall()
+            return [{"id": fila[0], "nombre": fila[1], "apellido": fila[2]} for fila in resultados]
+        except mysql.connector.Error as err:
+            print("Error al obtener veterinarios:", err)
+            return []
+
+
+            
 
 
 mysql_connect()

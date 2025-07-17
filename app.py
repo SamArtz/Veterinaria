@@ -733,7 +733,7 @@ class ventana_principal(QMainWindow):
         
         self.input_mascota_1 = QLineEdit()
         self.input_mascota_1.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
-        self.formulario_admin_0.addRow("apellido de la mascota:", self.input_mascota_1)
+        self.formulario_admin_0.addRow("Apellido de la mascota:", self.input_mascota_1)
         self.item_mascota_1 = self.formulario_admin_0.itemAt(2, QFormLayout.ItemRole.LabelRole)
         self.item_mascota_1 = self.item_mascota_1.widget()
         self.item_mascota_1.setStyleSheet("  font-size: 20px; ")
@@ -790,11 +790,18 @@ class ventana_principal(QMainWindow):
         self.item_dueno_2 = self.formulario_admin_1.itemAt(3, QFormLayout.ItemRole.LabelRole )
         self.item_dueno_2 = self.item_dueno_2.widget()
         self.item_dueno_2.setStyleSheet(" font-size: 20px; ")
+
+        self.input_dueno_telefono = QLineEdit()
+        self.input_dueno_telefono.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px; ")
+        self.formulario_admin_1.addRow("Teléfono del dueño:", self.input_dueno_telefono)
+        self.item_dueno_telefono = self.formulario_admin_1.itemAt(4, QFormLayout.ItemRole.LabelRole)
+        self.item_dueno_telefono = self.item_dueno_telefono.widget()
+        self.item_dueno_telefono.setStyleSheet(" font-size: 20px; ")
         
         self.input_dueno_3 = QLineEdit()
         self.input_dueno_3.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px; ")
         self.formulario_admin_1.addRow("Correo electronico:", self.input_dueno_3)
-        self.item_dueno_3 = self.formulario_admin_1.itemAt(4, QFormLayout.ItemRole.LabelRole )
+        self.item_dueno_3 = self.formulario_admin_1.itemAt(5, QFormLayout.ItemRole.LabelRole )
         self.item_dueno_3 = self.item_dueno_3.widget()
         self.item_dueno_3.setStyleSheet(" font-size: 20px; ")
         
@@ -803,7 +810,7 @@ class ventana_principal(QMainWindow):
         self.fecha_dueno_0.setCalendarPopup(True)
         self.fecha_dueno_0.setDateTime(QDateTime.currentDateTime())
         self.formulario_admin_1.addRow("Fecha de nacimiento: ", self.fecha_dueno_0)
-        self.item_dueno_1 = self.formulario_admin_1.itemAt(5, QFormLayout.ItemRole.LabelRole )
+        self.item_dueno_1 = self.formulario_admin_1.itemAt(6, QFormLayout.ItemRole.LabelRole )
         self.item_dueno_1 = self.item_dueno_1.widget()
         self.item_dueno_1.setStyleSheet(" font-size: 20px;")
         
@@ -816,7 +823,12 @@ class ventana_principal(QMainWindow):
         
         self.combo_cita_0 = QComboBox()
         self.combo_cita_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
-        for i in self.mascotas_registradas: self.combo_cita_0.addItem(str(list(i.values())[0]))
+        db = mysql_connect()
+        mascotas = db.obtener_mascotas_con_apellido_cliente()
+
+        for mascota in mascotas:
+            nombre_combo = f'{mascota["nombre"]} {mascota["apellido_cliente"]}'
+            self.combo_cita_0.addItem(nombre_combo, mascota["id"])
         self.formulario_cita_1.addRow("Nombre de la mascota: ", self.combo_cita_0)
         self.item_cita_0 = self.formulario_cita_1.itemAt(1, QFormLayout.ItemRole.LabelRole )
         self.item_cita_0 = self.item_cita_0.widget()
@@ -824,6 +836,10 @@ class ventana_principal(QMainWindow):
         
         self.combo_cita_1 = QComboBox()
         self.combo_cita_1.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
+        veterinarios = db.obtener_veterinarios()
+        for vet in veterinarios:
+            nombre_completo = f'{vet["nombre"]} {vet["apellido"]}'
+            self.combo_cita_1.addItem(nombre_completo, vet["id"])
         self.formulario_cita_1.addRow("Veterianario asignado: ", self.combo_cita_1)
         self.item_cita_1 = self.formulario_cita_1.itemAt(2, QFormLayout.ItemRole.LabelRole )
         self.item_cita_1 = self.item_cita_1.widget()
@@ -864,10 +880,13 @@ class ventana_principal(QMainWindow):
         self.button_registrar_cliente = QPushButton("Registrar cliente")
         self.button_registrar_cliente.setStyleSheet(" max-width: 200px; height: 25px; font-size: 20px; ")
         self.layout_section_2.addWidget(self.button_registrar_cliente)
+        self.button_registrar_cliente.clicked.connect(self.registrar_datos)
         
         self.button_registrar_cita = QPushButton("Registrar cita")
         self.button_registrar_cita.setStyleSheet(" max-width: 200px; height: 25px; font-size: 20px; ")
         self.layout_section_2.addWidget(self.button_registrar_cita)
+
+        self.button_registrar_cita.clicked.connect(self.registrar_cita)
         
         layout_admin.addLayout(self.layout_section_2)
         
@@ -905,6 +924,70 @@ class ventana_principal(QMainWindow):
         self.layout_section_4.addWidget(self.label_mostrar_0)
         layout_admin.addLayout(self.layout_section_4)
         self.productos_agregados = []
+
+    def registrar_cita(self):
+        if (
+            self.combo_cita_0.currentIndex() == -1 or
+            self.combo_cita_1.currentIndex() == -1 or
+            self.input_cita_0.text().strip() == ""
+        ):
+            QMessageBox.warning(self, "Campos incompletos", "Por favor, completa todos los campos.")
+            return
+
+        # Obtener ID reales (asumo que .currentData() guarda el ID)
+        id_mascota = self.combo_cita_0.currentData()
+        id_veterinario = self.combo_cita_1.currentData()
+        fecha = self.fecha_cita_0.date().toString("yyyy-MM-dd")
+        motivo = self.input_cita_0.text().strip()
+        precio = self.spin_cita_0.value()
+
+        db = mysql_connect()
+        if db.registrar_cita(id_mascota, id_veterinario, fecha, motivo, precio):
+            QMessageBox.information(self, "Éxito", "La cita fue registrada correctamente.")
+        else:
+            QMessageBox.critical(self, "Error", "No se pudo registrar la cita.")
+
+    def registrar_datos(self):
+        # Validar que todos los campos estén llenos
+        if not all([
+            self.input_mascota_0.text(),
+            self.input_mascota_1.text(),
+            self.input_mascota_2.text(),
+            self.input_mascota_3.text(),
+            self.input_dueno_0.text(),
+            self.input_dueno_1.text(),
+            self.input_dueno_2.text(),
+            self.input_dueno_3.text()
+        ]):
+            QMessageBox.warning(self, "Campos vacíos", "Por favor, completa todos los campos.")
+            return
+
+        # Obtener datos
+        cliente_data = (
+            self.input_dueno_0.text(),
+            self.input_dueno_1.text(),
+            self.input_dueno_2.text(),
+            self.input_dueno_telefono.text(),
+            self.input_dueno_3.text(),
+            self.fecha_dueno_0.date().toString("yyyy-MM-dd")
+        )
+
+        mascota_data = (
+            self.input_mascota_2.text(),
+            self.input_mascota_3.text(),
+            self.spin_mascota_0.value(),
+            self.input_mascota_0.text()
+        )
+
+        # Llamar al método del archivo sql.py
+        db = mysql_connect()
+        exito = db.registrar_cliente_y_mascota(cliente_data, mascota_data)
+
+        if exito:
+            QMessageBox.information(self, "Éxito", "Cliente y mascota registrados correctamente.")
+        else:
+            QMessageBox.critical(self, "Error", "Ocurrió un error al registrar los datos.")
+
 
     def abrir_ventana_factura(self):
         ventana = VentanaFactura(self)
