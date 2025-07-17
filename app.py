@@ -1,7 +1,7 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy, QGridLayout, QFormLayout, QDateEdit, QCheckBox, QDoubleSpinBox, QCompleter,QDialog
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy, QGridLayout, QFormLayout, QDateEdit, QCheckBox, QDoubleSpinBox, QCompleter,QDialog, QAbstractItemView
 from PyQt6.QtCore import Qt, QDateTime
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy, QGridLayout,QTableWidget, QTableWidgetItem,QDialog
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton,QMainWindow,QLabel, QHBoxLayout, QSlider, QLineEdit, QVBoxLayout, QMessageBox, QSpinBox, QComboBox, QSizePolicy, QGridLayout,QTableWidget, QTableWidgetItem,QDialog,QTextEdit
+from PyQt6.QtCore import Qt, QSize, QDate
 from PyQt6.QtGui import QFont
 from sql import mysql_connect
 from decimal import Decimal
@@ -324,6 +324,7 @@ class ventana_principal(QMainWindow):
     def __init__(self, comb_Log):
         super().__init__()
         self.resize(500, 700)
+        self.user_id=1
 
         self.label = QLabel(str(comb_Log))
         if str(comb_Log) == "Administrador":
@@ -462,134 +463,88 @@ class ventana_principal(QMainWindow):
         #container.setLayout(layout_admin)
         #self.setCentralWidget(container)
     def doctor(self):
-         self.setWindowTitle("Panel del Doctor")
-         self.resize(1000, 700)  # ventana 
+        self.setWindowTitle("Panel del Doctor")
+        container = QWidget()
+        layout = QHBoxLayout(container)
 
-         ancho_campos = 300  # más largo para nombre y apellido
-         alto_campos_grandes = 80  
-         separacion = 20
-         y = 20
+        # Left side: Appointments for the day
+        left_layout = QVBoxLayout()
+        left_layout.addWidget(QLabel("Citas de Hoy"))
+        self.tabla_citas_doctor = QTableWidget()
+        self.tabla_citas_doctor.setColumnCount(6)
+        self.tabla_citas_doctor.setHorizontalHeaderLabels(["ID Cita", "Dueño", "Mascota", "Hora", "Motivo", "Estado"])
+        self.tabla_citas_doctor.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tabla_citas_doctor.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.tabla_citas_doctor.itemSelectionChanged.connect(self.mostrar_historial_medico)
+        self.tabla_citas_doctor.resizeColumnsToContents()
+        left_layout.addWidget(self.tabla_citas_doctor)
 
-         # Etiqueta de bienvenida
-         self.label = QLabel("Bienvenido Doctor", self)
-         self.label.setFont(QFont("Arial", 20))
-         self.label.adjustSize()
-         self.label.move(50, y)
-         y += 50
+        # Right side: Medical History and Consultation
+        right_layout = QVBoxLayout()
+        right_layout.addWidget(QLabel("Historial Médico de la Mascota"))
+        self.tabla_historial_medico = QTableWidget()
+        self.tabla_historial_medico.setColumnCount(4)
+        self.tabla_historial_medico.setHorizontalHeaderLabels(["Fecha", "Motivo", "Diagnóstico", "Tratamiento"])
+        self.tabla_historial_medico.resizeColumnsToContents()
+        right_layout.addWidget(self.tabla_historial_medico)
 
-         # Nombre y apellido de la mascota
-         self.nombre_mascota = QLineEdit(self)
-         self.nombre_mascota.setPlaceholderText("Nombre de la mascota")
-         self.nombre_mascota.setFixedWidth(ancho_campos)
-         self.nombre_mascota.move(50, y)
+        self.btn_iniciar_consulta = QPushButton("Iniciar Consulta")
+        self.btn_iniciar_consulta.clicked.connect(self.iniciar_consulta_dialog)
+        right_layout.addWidget(self.btn_iniciar_consulta)
 
-         self.apellido_mascota = QLineEdit(self)
-         self.apellido_mascota.setPlaceholderText("Apellido de la mascota")
-         self.apellido_mascota.setFixedWidth(ancho_campos)
-         self.apellido_mascota.move(50 + ancho_campos + separacion, y)
+        layout.addLayout(left_layout, 1)
+        layout.addLayout(right_layout, 1)
+        self.setCentralWidget(container)
 
-         y += 50
+        self.cargar_citas_doctor()
 
-         # especie (Perro/Gato)
-         self.especie = QComboBox(self)
-         self.especie.addItems(["Perro", "Gato"])
-         self.especie.setFixedWidth(150)
-         self.especie.move(50, y)
-         self.especie.currentTextChanged.connect(self.actualizar_razas)
+    def cargar_citas_doctor(self):
+        self.db=mysql_connect()
+        doctor_id = self.user_id
+        hoy = QDate.currentDate().toString("yyyy-MM-dd")
+        citas = self.db.get_citas_by_doctor_and_date(doctor_id, hoy)
+        self.tabla_citas_doctor.setRowCount(len(citas))
+        for row, cita_data in enumerate(citas):
+            id_cita, dueno, mascota, hora, motivo, estado, id_mascota = cita_data
+            self.tabla_citas_doctor.setItem(row, 0, QTableWidgetItem(str(id_cita)))
+            self.tabla_citas_doctor.setItem(row, 1, QTableWidgetItem(dueno))
+            self.tabla_citas_doctor.setItem(row, 2, QTableWidgetItem(mascota))
+            self.tabla_citas_doctor.setItem(row, 3, QTableWidgetItem(str(hora)))
+            self.tabla_citas_doctor.setItem(row, 4, QTableWidgetItem(motivo))
+            self.tabla_citas_doctor.setItem(row, 5, QTableWidgetItem(estado))
+            self.tabla_citas_doctor.item(row, 0).setData(Qt.ItemDataRole.UserRole, id_mascota)
 
-         # autocompletado
-         self.raza_mascota = QComboBox(self)
-         self.raza_mascota.setEditable(True) 
-         self.raza_mascota.setFixedWidth(400)
-         self.raza_mascota.move(220, y)
+    def mostrar_historial_medico(self):
+        selected_items = self.tabla_citas_doctor.selectedItems()
+        if not selected_items:
+            self.tabla_historial_medico.setRowCount(0)
+            return
 
-         y += 50
+        id_mascota = selected_items[0].data(Qt.ItemDataRole.UserRole)
+        historial = self.db.get_historial_medico(id_mascota)
+        self.tabla_historial_medico.setRowCount(len(historial))
+        for row, record in enumerate(historial):
+            for col, data in enumerate(record):
+                self.tabla_historial_medico.setItem(row, col, QTableWidgetItem(str(data)))
 
-         # Nombre y apellido del dueño 
-         self.nombre_dueno = QLineEdit(self)
-         self.nombre_dueno.setPlaceholderText("Nombre del dueño")
-         self.nombre_dueno.setFixedWidth(ancho_campos)
-         self.nombre_dueno.move(50, y)
+    def iniciar_consulta_dialog(self):
+        selected_items = self.tabla_citas_doctor.selectedItems()
+        if not selected_items:
+            QMessageBox.warning(self, "Error", "Por favor, seleccione una cita para iniciar la consulta.")
+            return
 
-         self.apellido_dueno = QLineEdit(self)
-         self.apellido_dueno.setPlaceholderText("Apellido del dueño")
-         self.apellido_dueno.setFixedWidth(ancho_campos)
-         self.apellido_dueno.move(50 + ancho_campos + separacion, y)
+        row = selected_items[0].row()
+        cita_id = self.tabla_citas_doctor.item(row, 0).text()
+        id_mascota = self.tabla_citas_doctor.item(row, 0).data(Qt.ItemDataRole.UserRole)
+        motivo = self.tabla_citas_doctor.item(row, 4).text()
+        id_doctor = self.user_id
 
-         y += 50
-
-         # Fecha de la consulta 
-         from datetime import datetime
-         self.fecha_consulta = QLineEdit(self)
-         self.fecha_consulta.setReadOnly(True)
-         self.fecha_consulta.setPlaceholderText("Fecha de la consulta")
-         self.fecha_consulta.setFixedWidth(300)
-         self.fecha_consulta.move(50, y)
-         self.fecha_consulta.setText(datetime.now().strftime("%d/%m/%Y %H:%M"))
-
-         y += 50
-
-         # Edad de la mascota
-         self.edad_paciente = QSpinBox(self)
-         self.edad_paciente.setRange(0, 120)
-         self.edad_paciente.setPrefix("Edad: ")
-         self.edad_paciente.setFixedWidth(150)
-         self.edad_paciente.move(50, y)
-
-         y += 60
-
-         # Campo de razón de consulta 
-         self.sintomas_paciente = QLineEdit(self)
-         self.sintomas_paciente.setPlaceholderText("Razón de consulta / Síntomas")
-         self.sintomas_paciente.setFixedWidth(700)
-         self.sintomas_paciente.setFixedHeight(alto_campos_grandes)
-         self.sintomas_paciente.move(50, y)
-         y += alto_campos_grandes + 20
-
-         # Campo de diagnóstico 
-         self.diagnostico = QLineEdit(self)
-         self.diagnostico.setPlaceholderText("Diagnóstico y receta médica")
-         self.diagnostico.setFixedWidth(700)
-         self.diagnostico.setFixedHeight(alto_campos_grandes)
-         self.diagnostico.move(50, y)
-         y += alto_campos_grandes + 30
-
-         # Botón para simular guardar
-         self.boton_guardar = QPushButton("Guardar información", self)
-         self.boton_guardar.setFixedWidth(200)
-         self.boton_guardar.move(50, y)
-         self.boton_guardar.clicked.connect(self.simular_guardado)
-
-         # Botón Ver pacientes (abajo a la derecha)
-         self.ver_Paciente = QPushButton("Ver pacientes", self)
-         self.ver_Paciente.setFixedWidth(200)
-         self.ver_Paciente.move(750, 600)
-         self.ver_Paciente.clicked.connect(self.mostrar_pacientes)
-
-         # ComboBox de pacientes
-         self.pacientes = QComboBox(self)
-         self.pacientes.addItems(["Paciente 1", "Paciente 2", "Paciente 3"])
-         self.pacientes.move(750, 560)
-         self.pacientes.hide()
-
-         # Listas de razas para especie
-         self.razas_perro = [
-            "Labrador Retriever", "Bulldog", "Beagle", "Poodle", "Pastor Alemán",
-            "Golden Retriever", "Chihuahua", "Rottweiler", "Dálmata", "Boxer"
-        ]
-         self.razas_gato = [
-            "Persa", "Siamés", "Maine Coon", "Bengala", "Ragdoll",
-            "Esfinge", "Británico", "Abisinio", "Siberiano", "Exótico"
-        ]
-         self.actualizar_razas("Perro")  # carga inicial
+        dialog = mini_ventana_consulta(cita_id, id_mascota, id_doctor, motivo, self)
+        if dialog.exec():
+            self.cargar_citas_doctor()
+            self.mostrar_historial_medico()
 
 
-    def actualizar_razas(self, especie):
-        self.raza_mascota.clear()
-        if especie == "Perro":
-            self.raza_mascota.addItems(self.razas_perro)
-        elif especie == "Gato":
-            self.raza_mascota.addItems(self.razas_gato)
     def tipo_usuario_combo(self,texto):
         if texto =="Doctor":
             self.add.move(190,340)
@@ -1130,6 +1085,53 @@ class VentanaFactura(QDialog):
 
         total = Decimal(precio_consulta) + Decimal(precio_productos)
         self.label_precio_total.setText(f"${total:.2f}")
+
+
+class mini_ventana_consulta(QDialog):
+    def __init__(self, cita_id, mascota_id, doctor_id, motivo, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Registrar Consulta")
+        self.setFixedSize(500, 400)
+
+        self.cita_id = cita_id
+        self.mascota_id = mascota_id
+        self.doctor_id = doctor_id
+        self.motivo = motivo
+
+        layout = QFormLayout(self)
+
+        self.motivo_label = QLabel(f"<b>Motivo de la Consulta:</b> {self.motivo}")
+        self.diagnostico_edit = QTextEdit()
+        self.tratamiento_edit = QTextEdit()
+
+        layout.addRow(self.motivo_label)
+        layout.addRow("Diagnóstico:", self.diagnostico_edit)
+        layout.addRow("Tratamiento:", self.tratamiento_edit)
+
+        self.btn_guardar = QPushButton("Guardar Consulta")
+        self.btn_guardar.clicked.connect(self.guardar_consulta)
+        layout.addRow(self.btn_guardar)
+
+    def guardar_consulta(self):
+        diagnostico = self.diagnostico_edit.toPlainText()
+        tratamiento = self.tratamiento_edit.toPlainText()
+
+        if not diagnostico or not tratamiento:
+            QMessageBox.warning(self, "Campos incompletos", "Por favor, complete el diagnóstico y el tratamiento.")
+            return
+
+        fecha = QDate.currentDate().toString("yyyy-MM-dd")
+
+        conexion = mysql_connect()
+        try:
+            conexion.agregar_consulta(self.cita_id, self.mascota_id, self.doctor_id, fecha, self.motivo, diagnostico, tratamiento)
+            conexion.actualizar_estado_cita(self.cita_id, "Completada")
+            QMessageBox.information(self, "Éxito", "Consulta guardada y cita completada.")
+            self.accept()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo guardar la consulta: {e}")
+        finally:
+            conexion.close()
     
        
 
