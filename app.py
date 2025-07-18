@@ -471,8 +471,8 @@ class ventana_principal(QMainWindow):
         left_layout = QVBoxLayout()
         left_layout.addWidget(QLabel("Citas de Hoy"))
         self.tabla_citas_doctor = QTableWidget()
-        self.tabla_citas_doctor.setColumnCount(6)
-        self.tabla_citas_doctor.setHorizontalHeaderLabels(["ID Cita", "Dueño", "Mascota", "Hora", "Motivo", "Estado"])
+        self.tabla_citas_doctor.setColumnCount(5)
+        self.tabla_citas_doctor.setHorizontalHeaderLabels(["ID Cita", "Dueño", "Mascota", "Motivo", "Id_mascota"])
         self.tabla_citas_doctor.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tabla_citas_doctor.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tabla_citas_doctor.itemSelectionChanged.connect(self.mostrar_historial_medico)
@@ -500,18 +500,18 @@ class ventana_principal(QMainWindow):
 
     def cargar_citas_doctor(self):
         self.db=mysql_connect()
-        doctor_id = self.user_id
-        hoy = QDate.currentDate().toString("yyyy-MM-dd")
+        doctor_id = self.user_id       
+        hoy = QDate.currentDate().toString("yyyy-MM-dd")      
         citas = self.db.get_citas_by_doctor_and_date(doctor_id, hoy)
         self.tabla_citas_doctor.setRowCount(len(citas))
         for row, cita_data in enumerate(citas):
-            id_cita, dueno, mascota, hora, motivo, estado, id_mascota = cita_data
+            id_cita, dueno, mascota, motivo, id_mascota = cita_data
             self.tabla_citas_doctor.setItem(row, 0, QTableWidgetItem(str(id_cita)))
             self.tabla_citas_doctor.setItem(row, 1, QTableWidgetItem(dueno))
             self.tabla_citas_doctor.setItem(row, 2, QTableWidgetItem(mascota))
-            self.tabla_citas_doctor.setItem(row, 3, QTableWidgetItem(str(hora)))
-            self.tabla_citas_doctor.setItem(row, 4, QTableWidgetItem(motivo))
-            self.tabla_citas_doctor.setItem(row, 5, QTableWidgetItem(estado))
+            #self.tabla_citas_doctor.setItem(row, 3, QTableWidgetItem(str(hora)))
+            self.tabla_citas_doctor.setItem(row, 3, QTableWidgetItem(motivo))
+            #self.tabla_citas_doctor.setItem(row, 4, QTableWidgetItem(estado))
             self.tabla_citas_doctor.item(row, 0).setData(Qt.ItemDataRole.UserRole, id_mascota)
 
     def mostrar_historial_medico(self):
@@ -536,7 +536,7 @@ class ventana_principal(QMainWindow):
         row = selected_items[0].row()
         cita_id = self.tabla_citas_doctor.item(row, 0).text()
         id_mascota = self.tabla_citas_doctor.item(row, 0).data(Qt.ItemDataRole.UserRole)
-        motivo = self.tabla_citas_doctor.item(row, 4).text()
+        motivo = self.tabla_citas_doctor.item(row, 3).text()
         id_doctor = self.user_id
 
         dialog = mini_ventana_consulta(cita_id, id_mascota, id_doctor, motivo, self)
@@ -778,12 +778,14 @@ class ventana_principal(QMainWindow):
         
         self.combo_cita_0 = QComboBox()
         self.combo_cita_0.setStyleSheet(" height: 25px; font-size: 20px; max-width: 500px;")
-        db = mysql_connect()
-        mascotas = db.obtener_mascotas_con_apellido_cliente()
+        db=mysql_connect()
+        self.obtener_mascotas()
+        #self.formulario_cita_1.addRow("Nombre de la mascota: ", self.combo_cita_0)
+        #mascotas=self.obtener_mascotas()
 
-        for mascota in mascotas:
-            nombre_combo = f'{mascota["nombre"]} {mascota["apellido_cliente"]}'
-            self.combo_cita_0.addItem(nombre_combo, mascota["id"])
+        #for mascota in mascotas:
+            #nombre_combo = f'{mascota["nombre"]} {mascota["apellido_cliente"]}'
+            #self.combo_cita_0.addItem(nombre_combo, mascota["id"])
         self.formulario_cita_1.addRow("Nombre de la mascota: ", self.combo_cita_0)
         self.item_cita_0 = self.formulario_cita_1.itemAt(1, QFormLayout.ItemRole.LabelRole )
         self.item_cita_0 = self.item_cita_0.widget()
@@ -873,12 +875,23 @@ class ventana_principal(QMainWindow):
         
         self.layout_section_4 = QVBoxLayout()
         
-        self.label_mostrar_0 = QLabel("Algo")
+        self.label_mostrar_0 = QLabel("")
         self.label_mostrar_0.setStyleSheet(" font-size: 20px; ")
         
         self.layout_section_4.addWidget(self.label_mostrar_0)
         layout_admin.addLayout(self.layout_section_4)
         self.productos_agregados = []
+
+    def obtener_mascotas(self):
+        db = mysql_connect()
+        mascotas = db.obtener_mascotas_con_apellido_cliente()
+
+        self.combo_cita_0.clear()
+
+        for mascota in mascotas:
+            nombre_combo = f'{mascota["nombre"]} {mascota["apellido_cliente"]}'
+            self.combo_cita_0.addItem(nombre_combo, mascota["id"])
+        return mascotas
 
     def registrar_cita(self):
         if (
@@ -937,6 +950,7 @@ class ventana_principal(QMainWindow):
         # Llamar al método del archivo sql.py
         db = mysql_connect()
         exito = db.registrar_cliente_y_mascota(cliente_data, mascota_data)
+        self.obtener_mascotas()
 
         if exito:
             QMessageBox.information(self, "Éxito", "Cliente y mascota registrados correctamente.")
@@ -1207,14 +1221,51 @@ class mini_ventana_consulta(QDialog):
 
         conexion = mysql_connect()
         try:
-            conexion.agregar_consulta(self.cita_id, self.mascota_id, self.doctor_id, fecha, self.motivo, diagnostico, tratamiento)
-            conexion.actualizar_estado_cita(self.cita_id, "Completada")
+            conexion.agregar_consulta(self.cita_id, self.mascota_id, self.doctor_id, fecha, self.motivo, diagnostico)
+            #conexion.actualizar_estado_cita(self.cita_id, "Completada")
             QMessageBox.information(self, "Éxito", "Consulta guardada y cita completada.")
             self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo guardar la consulta: {e}")
         finally:
             conexion.close()
+    
+class CrearUsuarioDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.parent_window = parent
+        self.setWindowTitle("Crear Nuevo Usuario")
+
+        self.user_line = QLineEdit()
+        self.pass_line = QLineEdit()
+        self.pass_line.setEchoMode(QLineEdit.EchoMode.Password)
+        self.rol_combo = QComboBox()
+        self.rol_combo.addItems(["Administrador", "Doctor", "Recepcion"])
+
+        self.btn_crear = QPushButton("Crear")
+        self.btn_crear.clicked.connect(self.agregar_def)
+
+        form_layout = QFormLayout()
+        form_layout.addRow("Usuario:", self.user_line)
+        form_layout.addRow("Contraseña:", self.pass_line)
+        form_layout.addRow("Rol:", self.rol_combo)
+        form_layout.addRow(self.btn_crear)
+
+        self.setLayout(form_layout)
+
+    def agregar_def(self):
+        usuario = self.user_line.text()
+        clave = self.pass_line.text()
+        rol = self.rol_combo.currentText()
+
+        if not usuario or not clave:
+            QMessageBox.warning(self, "Error", "Usuario y contraseña no pueden estar vacíos.")
+            return
+
+        # Call the method from the parent window (pantalla_inicial)
+        self.parent_window.agregar_usuario(rol, usuario, clave)
+        QMessageBox.information(self, "Éxito", f"Usuario '{usuario}' agregado como {rol}.")
+        self.accept() # Use accept() to close the dialog and return a success signal
     
        
 

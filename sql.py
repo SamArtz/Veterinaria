@@ -6,7 +6,7 @@ class mysql_connect():
         self.conexion = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="admin",
+        password="root",
         database="vet"
         )
 
@@ -104,27 +104,26 @@ class mysql_connect():
         return resultado[0] if resultado else 0.0
     
     def get_citas_by_doctor_and_date(self, doctor_id, fecha):
-        query = """SELECT c.Id_Cita, cl.Nombre, m.Nombre, c.Hora, c.Motivo, c.Estado, c.Id_Mascota
-                 FROM cita c
-                 JOIN mascota m ON c.Id_Mascota = m.Id_Mascota
-                 JOIN cliente cl ON m.Id_Cliente = cl.Id_Cliente
-                 WHERE c.Id_Doctor = %s AND c.Fecha = %s
-                 ORDER BY c.Hora"""
-        self.cursor.execute(query, (doctor_id, fecha))
+        query = """select c.Id_consultas, cl.Nombre, m.Nombre, c.Motiv_consult, c.Id_Mascota  from consultas c
+                    join doctor d on d.Id_doctor = c.Id_doctor 
+                    join mascota m on c.Id_Mascota = m.Id_Mascota 
+                    join cliente cl on cl.Id_cliente = m.Id_cliente 
+                    where Fecha_consult=%s"""
+        self.cursor.execute(query, (fecha,))
         return self.cursor.fetchall()
     
     def get_historial_medico(self, mascota_id):
-        query = """SELECT Fecha, Motivo, Diagnostico, Tratamiento
-                 FROM consulta
+        query = """SELECT Fecha_consult, Motiv_consult, Diagnostico
+                 FROM consultas
                  WHERE Id_Mascota = %s
-                 ORDER BY Fecha DESC"""
+                 ORDER BY Fecha_consult DESC"""
         self.cursor.execute(query, (mascota_id,))
         return self.cursor.fetchall()
     
-    def agregar_consulta(self, id_cita, id_mascota, id_doctor, fecha, motivo, diagnostico, tratamiento):
-        query = """INSERT INTO consulta (Id_Cita, Id_Mascota, Id_Doctor, Fecha, Motivo, Diagnostico, Tratamiento)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s)"""
-        values = (id_cita, id_mascota, id_doctor, fecha, motivo, diagnostico, tratamiento)
+    def agregar_consulta(self, id_cita, id_mascota, id_doctor, fecha, motivo, diagnostico):
+        query = """INSERT INTO consultas (Id_consultas, Id_Mascota, Id_Doctor, Fecha_consult, Motiv_consult, Diagnostico)
+                 VALUES (%s, %s, %s, %s, %s, %s)"""
+        values = (id_cita, id_mascota, id_doctor, fecha, motivo, diagnostico)
         try:
             self.cursor.execute(query, values)
             self.conexion.commit()
@@ -133,7 +132,7 @@ class mysql_connect():
             self.conexion.rollback()
 
     def actualizar_estado_cita(self, id_cita, nuevo_estado):
-        query = "UPDATE consulta SET Estado = %s WHERE Id_Cita = %s"
+        query = "UPDATE consultas SET Estado = %s WHERE Id_Cita = %s"
         try:
             self.cursor.execute(query, (nuevo_estado, id_cita))
             self.conexion.commit()
